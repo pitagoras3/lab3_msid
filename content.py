@@ -60,8 +60,16 @@ def stochastic_gradient_descent(obj_fun, x_train, y_train, w0, epochs, eta, mini
     gdzie w oznacza znaleziony optymalny punkt w, a func_values jest wektorem wartosci funkcji [epochs x 1] we wszystkich krokach algorytmu. Wartosci
     funkcji do func_values sa wyliczane dla calego zbioru treningowego!
     '''
-    pass
-
+    w = w0
+    func_values = np.empty([epochs,1])
+    x_mb = np.split(x_train, x_train.shape[0]/3)
+    y_mb = np.split(y_train, y_train.shape[0]/3)
+    for k in range(0, epochs):
+        for m in range(0, len(y_mb)):
+            grad_w = -obj_fun(w, x_mb[m], y_mb[m])[1]
+            w += eta * grad_w
+        func_values[k] = obj_fun(w, x_train, y_train)[0]
+    return (w, func_values)
 
 def regularized_logistic_cost_function(w, x_train, y_train, regularization_lambda):
     '''
