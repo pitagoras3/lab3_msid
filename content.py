@@ -98,13 +98,17 @@ def prediction(x, w, theta):
     predicted = np.vectorize(lambda x: 1 if x>theta else 0)
     return predicted(sigmoid(x@w))
 
+
 def f_measure(y_true, y_pred):
     '''
     :param y_true: wektor rzeczywistych etykiet Nx1
     :param y_pred: wektor etykiet przewidzianych przed model Nx1
     :return: funkcja wylicza wartosc miary F
     '''
-    pass
+    tp = sum([1 if y[0] == y[1] == 1 else 0 for y in zip(y_true, y_pred)])
+    fp = sum([1 if y[0] == 0 and y[1] == 1 else 0 for y in zip(y_true, y_pred)])
+    fn = sum([1 if y[0] == 1 and y[1] == 0 else 0 for y in zip(y_true, y_pred)])
+    return 2*tp/(2*tp+fp+fn)
 
 
 def model_selection(x_train, y_train, x_val, y_val, w0, epochs, eta, mini_batch, lambdas, thetas):
