@@ -8,8 +8,8 @@ import pickle
 import numpy as np
 from utils import hog
 from time import sleep
-from zadanie3.test import TestRunner
-from zadanie3.content import (sigmoid, logistic_cost_function, gradient_descent,
+from test import TestRunner
+from content import (sigmoid, logistic_cost_function, gradient_descent,
                               stochastic_gradient_descent, regularized_logistic_cost_function,
                               prediction, f_measure, model_selection)
 
