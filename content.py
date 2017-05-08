@@ -24,8 +24,8 @@ def logistic_cost_function(w, x_train, y_train):
     :param y_train: ciag treningowy - wyjscia Nx1
     :return: funkcja zwraca krotke (val, grad), gdzie val oznacza wartosc funkcji logistycznej, a grad jej gradient po w
     '''
-    grad = -1/x_train.shape[0] * x_train.transpose() @ (y_train-sigmoid(x_train @ w))
     val = -1/x_train.shape[0] * sum(y_train*log(sigmoid(x_train @ w)) + (1-y_train)*log(1-sigmoid(x_train @ w)))
+    grad = -1/x_train.shape[0] * x_train.transpose() @ (y_train-sigmoid(x_train @ w))
     return (val,grad)
 
 
@@ -80,7 +80,11 @@ def regularized_logistic_cost_function(w, x_train, y_train, regularization_lambd
     :return: funkcja zwraca krotke (val, grad), gdzie val oznacza wartosc funkcji logistycznej z regularyzacja l2,
     a grad jej gradient po w
     '''
-    pass
+    w_minus0 = w[1:]
+    val = -1 / x_train.shape[0] * sum(y_train * log(sigmoid(x_train @ w)) + (1 - y_train) * log(1 - sigmoid(x_train @ w))) + regularization_lambda/2*(np.linalg.norm(w_minus0))**2
+    grad = (-1 / x_train.shape[0] * (x_train.transpose() @ (y_train - sigmoid(x_train @ w))))
+    grad = [grad[i] if i==0 else grad[i]+w_minus0[i-1]*regularization_lambda  for i in range(0,grad.shape[0])]
+    return (val, grad)
 
 
 def prediction(x, w, theta):
@@ -91,8 +95,8 @@ def prediction(x, w, theta):
     :return: funkcja wylicza wektor y o wymiarach Nx1. Wektor zawiera wartosci etykiet ze zbioru {0,1} dla obserwacji z x
      bazujac na modelu z parametrami w oraz progu klasyfikacji theta
     '''
-    pass
-
+    predicted = np.vectorize(lambda x: 1 if x>theta else 0)
+    return predicted(sigmoid(x@w))
 
 def f_measure(y_true, y_pred):
     '''
