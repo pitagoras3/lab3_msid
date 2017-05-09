@@ -5,7 +5,6 @@
 #  autorzy: A. Gonczarek, J. Kaczmar, S. Zareba
 #  2017
 # --------------------------------------------------------------------------
-
 import numpy as np
 from numpy import log
 
@@ -62,12 +61,13 @@ def stochastic_gradient_descent(obj_fun, x_train, y_train, w0, epochs, eta, mini
     '''
     w = w0
     func_values = np.empty([epochs,1])
-    x_mb = np.split(x_train, x_train.shape[0]/3)
-    y_mb = np.split(y_train, y_train.shape[0]/3)
+    x_mb = np.array_split(x_train, x_train.shape[0]/3)
+    y_mb = np.array_split(y_train, y_train.shape[0]/3)
     for k in range(0, epochs):
         for m in range(0, len(y_mb)):
-            grad_w = -obj_fun(w, x_mb[m], y_mb[m])[1]
-            w += eta * grad_w
+            grad_w = obj_fun(w, x_mb[m], y_mb[m])[1]
+            w = w-eta*np.asarray(grad_w)
+            # w += list(map(lambda x:-x*eta, grad_w))
         func_values[k] = obj_fun(w, x_train, y_train)[0]
     return (w, func_values)
 
@@ -105,9 +105,14 @@ def f_measure(y_true, y_pred):
     :param y_pred: wektor etykiet przewidzianych przed model Nx1
     :return: funkcja wylicza wartosc miary F
     '''
-    tp = sum([1 if y[0] == y[1] == 1 else 0 for y in zip(y_true, y_pred)])
-    fp = sum([1 if y[0] == 0 and y[1] == 1 else 0 for y in zip(y_true, y_pred)])
-    fn = sum([1 if y[0] == 1 and y[1] == 0 else 0 for y in zip(y_true, y_pred)])
+    tp = fp = fn = 0
+    for y in zip(y_true,y_pred):
+        if y[0] == y[1] == 1: tp+=1
+        elif y[0] == 0 and y[1] == 1: fp+=1
+        elif y[0] == 1 and y[1] == 0: fn+=1
+    # tp = sum([1 if y[0] == y[1] == 1 else 0 for y in zip(y_true, y_pred)])
+    # fp = sum([1 if y[0] == 0 and y[1] == 1 else 0 for y in zip(y_true, y_pred)])
+    # fn = sum([1 if y[0] == 1 and y[1] == 0 else 0 for y in zip(y_true, y_pred)])
     return 2*tp/(2*tp+fp+fn)
 
 
@@ -128,4 +133,30 @@ def model_selection(x_train, y_train, x_val, y_val, w0, epochs, eta, mini_batch,
     Dodatkowo funkcja zwraca macierz F, ktora zawiera wartosci miary F dla wszystkich par (lambda, theta). Do uczenia nalezy
     korzystac z algorytmu SGD oraz kryterium uczenia z regularyzacja l2.
     '''
-    pass
+
+    # F = np.zeros(shape=(len(lambdas), len(thetas)))
+    # max_f = [0, 0, 0, -1]
+    # for i, λ in enumerate(lambdas):
+    #     obj_fun = lambda w, x, y: regularized_logistic_cost_function(w, x, y, λ)
+    #     sgd = stochastic_gradient_descent(obj_fun, x_train, y_train, w0, epochs, eta, mini_batch)
+    #     for j, θ in enumerate(thetas):
+    #         f = f_measure(y_val, prediction(x_val, sgd[0], θ))
+    #         F[i, j] = f
+    #         if f > max_f[3]: max_f = [λ, θ, sgd[0], f]
+    # max_f[3] = F
+    # return tuple(max_f)
+
+
+
+    return_list = [0, 0, 0, -1]
+    f_measures = np.empty([len(lambdas), len(thetas)])
+    for i, _lambda in enumerate(lambdas):
+        obj_fun = lambda w, x, y: regularized_logistic_cost_function(w, x, y, _lambda)
+        sgd = stochastic_gradient_descent(obj_fun, x_train, y_train, w0, epochs, eta, mini_batch)
+        for j, theta in enumerate(thetas):
+            f = f_measure(y_val, prediction(x_val, sgd[0], theta))
+            f_measures[i, j] = f
+            if f > return_list[3]:
+                return_list = [_lambda, theta, sgd[0], f]
+    return_list[3] = f_measures
+    return (tuple(return_list))
